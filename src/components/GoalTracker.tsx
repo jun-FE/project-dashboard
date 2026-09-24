@@ -4,7 +4,17 @@ function periodLabel(period: RecurringGoal['period']): string {
   return period === 'weekly' ? '주간' : '월간'
 }
 
-export default function GoalTracker({ goals }: { goals: RecurringGoal[] }) {
+const BUMP_BTN =
+  'flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition hover:border-slate-400 hover:text-slate-900 disabled:opacity-30'
+
+// onBump 가 있으면 −/+ 버튼으로 현재 개수를 바꿀 수 있다.
+export default function GoalTracker({
+  goals,
+  onBump,
+}: {
+  goals: RecurringGoal[]
+  onBump?: (goal: RecurringGoal, delta: number) => void
+}) {
   if (goals.length === 0) {
     return <p className="text-sm text-slate-400">설정된 정기 목표가 없습니다.</p>
   }
@@ -23,8 +33,25 @@ export default function GoalTracker({ goals }: { goals: RecurringGoal[] }) {
                 </span>
                 {g.label}
               </span>
-              <span className="tabular-nums font-semibold text-slate-800">
-                {g.current_count}/{g.target_count}
+              <span className="flex items-center gap-2">
+                {onBump && (
+                  <button
+                    onClick={() => onBump(g, -1)}
+                    disabled={g.current_count === 0}
+                    aria-label={`${g.label} 하나 빼기`}
+                    className={BUMP_BTN}
+                  >
+                    −
+                  </button>
+                )}
+                <span className="tabular-nums font-semibold text-slate-800">
+                  {g.current_count}/{g.target_count}
+                </span>
+                {onBump && (
+                  <button onClick={() => onBump(g, 1)} aria-label={`${g.label} 하나 더하기`} className={BUMP_BTN}>
+                    +
+                  </button>
+                )}
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">

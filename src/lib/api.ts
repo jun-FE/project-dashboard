@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Project, RecurringGoal, ProgressLog } from '../types'
+import type { Project, RecurringGoal, ProgressLog, ProjectStatus, LogType } from '../types'
 
 export interface DashboardData {
   projects: Project[]
@@ -80,3 +80,42 @@ export async function fetchProjectDetail(id: string): Promise<ProjectDetail> {
     logs: (logsRes.data ?? []) as ProgressLog[],
   }
 }
+
+// ---- 화면에서 수정 (RLS 로 로그인한 본인만 가능) ----
+
+// status/progress 등 공통 컬럼 수정. updated_at 은 DB 트리거가 갱신한다.
+export async function updateProject(
+  id: string,
+  patch: Partial<Pick<Project, 'status' | 'progress'>>,
+): Promise<Project> {
+  const { data, error } = await supabase.from('projects').update(patch).eq('id', id).select().single()
+  if (error) throw error
+  return data as Project
+}
+
+// 정기 목표 ±. DB 에서 원자적으로 더하고 프로젝트 updated_at 도 갱신한다. (supabase/05_bump_goal.sql)
+export async function bumpGoal(goalId: string, delta: number): Promise<number> {
+  const { data, error } = await supabase.rpc('bump_goal', { goal_id: goalId, delta })
+  if (error) throw error
+  return data as number
+}
+
+// 로그를 남기면 그 프로젝트의 "마지막 업데이트"도 갱신한다. (값은 트리거가 now() 로 덮어씀)
+export async function addLog(projectId: string, logType: LogType, content: string): Promise<ProgressLog> {
+  const { data, error } = await supabase
+    .from('progress_logs')
+    .insert({ project_id: projectId, log_type: logType, content })
+    .select()
+    .single()
+  if (error) throw error
+  await supabase.from('projects').update({ updated_at: new Date().toISOString() }).eq('id', projectId)
+  return data as ProgressLog
+}
+
+export async function deleteLog(id: string): Promise<void> {
+  const { error } = await supabase.from('progress_logs').delete().eq('id', id)
+  if (error) throw error
+}
+
+export const PROJECT_STATUSES: ProjectStatus[] = ['active', 'paused', 'done']
+export const LOG_TYPES: LogType[] = ['작업', '결정', '이슈']
