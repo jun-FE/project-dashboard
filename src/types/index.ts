@@ -35,6 +35,24 @@ export interface ProgressLog {
   content: string
 }
 
+// 프로젝트의 개별 작업물 (쿠팡 리뷰 한 건 등). 테이블 정의는 supabase/06_project_items.sql
+export type ItemStage = 'queued' | 'drafted' | 'published'
+
+export interface ProjectItem {
+  id: string
+  project_id: string
+  external_key: string
+  title: string
+  stage: ItemStage
+  body: string | null
+  notes: string | null
+  // 쿠팡: { comment: 한줄평, photos: 사진 수 }
+  meta: { comment?: string; photos?: number } & Record<string, unknown>
+  created_at: string
+  drafted_at: string | null
+  published_at: string | null
+}
+
 // 메모봇(텔레그램)이 쌓는 메모. 테이블 정의는 ~/latte-factory/memo-bot/supabase/
 export type MemoKind = 'note' | 'todo' | 'event' | 'question' | 'link'
 export type TodoStatus = 'open' | 'done' | 'archived'

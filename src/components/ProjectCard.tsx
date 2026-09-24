@@ -8,9 +8,10 @@ interface Props {
   project: Project
   goals: RecurringGoal[]
   todayLogs: ProgressLog[]
+  pendingItems?: { queued: number; drafted: number }
 }
 
-export default function ProjectCard({ project, goals, todayLogs }: Props) {
+export default function ProjectCard({ project, goals, todayLogs, pendingItems }: Props) {
   const status = STATUS_META[project.status]
 
   return (
@@ -66,6 +67,16 @@ export default function ProjectCard({ project, goals, todayLogs }: Props) {
             </span>
           ))}
         </div>
+      )}
+
+      {/* 남은 작업물 */}
+      {pendingItems && (pendingItems.drafted > 0 || pendingItems.queued > 0) && (
+        <p className="mt-3 text-xs text-slate-500">
+          {pendingItems.drafted > 0 && (
+            <span className="mr-2 font-medium text-amber-700">📤 올릴 차례 {pendingItems.drafted}</span>
+          )}
+          {pendingItems.queued > 0 && <span>⏳ 초안 대기 {pendingItems.queued}</span>}
+        </p>
       )}
 
       {/* 오늘 한 일 */}

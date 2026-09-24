@@ -5,17 +5,19 @@ import {
   bumpGoal,
   deleteLog,
   fetchProjectDetail,
+  setItemPublished,
   updateProject,
   PROJECT_STATUSES,
   type ProjectDetail as Detail,
 } from '../lib/api'
-import type { LogType, ProgressLog, ProjectStatus, RecurringGoal } from '../types'
+import type { LogType, ProgressLog, ProjectItem, ProjectStatus, RecurringGoal } from '../types'
 import { categoryClass, STATUS_META } from '../lib/labels'
 import { relativeTime } from '../lib/format'
 import CustomFields from '../components/CustomFields'
 import GoalTracker from '../components/GoalTracker'
 import LogTimeline from '../components/LogTimeline'
 import LogForm from '../components/LogForm'
+import ItemBoard from '../components/ItemBoard'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -117,6 +119,25 @@ export default function ProjectDetail() {
     }
   }
 
+  // 완료 처리는 목표까지 바뀌므로 저장 후 전체를 다시 불러온다
+  async function publishItem(item: ProjectItem, published: boolean) {
+    const setItem = (next: Partial<ProjectItem>) =>
+      patch((d) => ({ ...d, items: d.items.map((i) => (i.id === item.id ? { ...i, ...next } : i)) }))
+    setItem(
+      published
+        ? { stage: 'published', published_at: new Date().toISOString() }
+        : { stage: item.body ? 'drafted' : 'queued', published_at: null },
+    )
+    try {
+      await setItemPublished(item.id, published)
+      const fresh = await fetchProjectDetail(item.project_id)
+      patch(() => fresh)
+    } catch (e) {
+      setItem({ stage: item.stage, published_at: item.published_at })
+      alert(`저장하지 못했어요: ${(e as Error).message}`)
+    }
+  }
+
   const progress = progressDraft ?? detail?.project.progress ?? 0
 
   return (
@@ -165,6 +186,13 @@ export default function ProjectDetail() {
               {detail.project.description && <p className="mt-2 text-slate-600">{detail.project.description}</p>}
               <p className="mt-1 text-xs text-slate-400">{relativeTime(detail.project.updated_at)} 업데이트</p>
             </div>
+
+            {/* 작업물 (쿠팡 리뷰 등) — 있는 프로젝트만 */}
+            {detail.items.length > 0 && (
+              <Section title="작업물">
+                <ItemBoard items={detail.items} onPublish={publishItem} />
+              </Section>
+            )}
 
             {/* 진행률 */}
             <Section title="진행률">

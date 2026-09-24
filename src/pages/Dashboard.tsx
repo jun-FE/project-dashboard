@@ -60,6 +60,7 @@ export default function Dashboard() {
                     project={p}
                     goals={data.goalsByProject[p.id] ?? []}
                     todayLogs={data.todayLogsByProject[p.id] ?? []}
+                    pendingItems={data.pendingItemsByProject[p.id]}
                   />
                 ))}
               </div>

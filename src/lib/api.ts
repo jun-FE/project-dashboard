@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Project, RecurringGoal, ProgressLog, ProjectStatus, LogType } from '../types'
+import type { Project, RecurringGoal, ProgressLog, ProjectStatus, LogType, ProjectItem } from '../types'
 
 export interface DashboardData {
   projects: Project[]
@@ -7,6 +7,8 @@ export interface DashboardData {
   goalsByProject: Record<string, RecurringGoal[]>
   // 프로젝트 id → 오늘 작성된 로그 (최신순)
   todayLogsByProject: Record<string, ProgressLog[]>
+  // 프로젝트 id → 아직 완료 안 된 작업물 수
+  pendingItemsByProject: Record<string, { queued: number; drafted: number }>
 }
 
 // 로컬 자정(00:00) 시각을 ISO 문자열로. "오늘" 경계 기준.
@@ -21,7 +23,7 @@ function startOfTodayISO(): string {
 export async function fetchDashboardData(): Promise<DashboardData> {
   const todayStart = startOfTodayISO()
 
-  const [projectsRes, goalsRes, logsRes] = await Promise.all([
+  const [projectsRes, goalsRes, logsRes, itemsRes] = await Promise.all([
     supabase.from('projects').select('*').order('updated_at', { ascending: false }),
     supabase.from('recurring_goals').select('*'),
     supabase
@@ -29,11 +31,13 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       .select('*')
       .gte('log_date', todayStart)
       .order('log_date', { ascending: false }),
+    supabase.from('project_items').select('project_id,stage').neq('stage', 'published'),
   ])
 
   if (projectsRes.error) throw projectsRes.error
   if (goalsRes.error) throw goalsRes.error
   if (logsRes.error) throw logsRes.error
+  if (itemsRes.error) throw itemsRes.error
 
   const projects = (projectsRes.data ?? []) as Project[]
   const goals = (goalsRes.data ?? []) as RecurringGoal[]
@@ -49,18 +53,25 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     ;(todayLogsByProject[l.project_id] ??= []).push(l)
   }
 
-  return { projects, goalsByProject, todayLogsByProject }
+  const pendingItemsByProject: DashboardData['pendingItemsByProject'] = {}
+  for (const i of (itemsRes.data ?? []) as Pick<ProjectItem, 'project_id' | 'stage'>[]) {
+    const c = (pendingItemsByProject[i.project_id] ??= { queued: 0, drafted: 0 })
+    if (i.stage === 'queued' || i.stage === 'drafted') c[i.stage]++
+  }
+
+  return { projects, goalsByProject, todayLogsByProject, pendingItemsByProject }
 }
 
 export interface ProjectDetail {
   project: Project
   goals: RecurringGoal[]
   logs: ProgressLog[] // 전체 로그, 최신순 (타임라인용)
+  items: ProjectItem[] // 작업물, 최신순
 }
 
-// 상세 페이지: 단일 프로젝트 + 정기목표 + 진행로그 전체.
+// 상세 페이지: 단일 프로젝트 + 정기목표 + 진행로그 전체 + 작업물.
 export async function fetchProjectDetail(id: string): Promise<ProjectDetail> {
-  const [projectRes, goalsRes, logsRes] = await Promise.all([
+  const [projectRes, goalsRes, logsRes, itemsRes] = await Promise.all([
     supabase.from('projects').select('*').eq('id', id).single(),
     supabase.from('recurring_goals').select('*').eq('project_id', id),
     supabase
@@ -68,16 +79,19 @@ export async function fetchProjectDetail(id: string): Promise<ProjectDetail> {
       .select('*')
       .eq('project_id', id)
       .order('log_date', { ascending: false }),
+    supabase.from('project_items').select('*').eq('project_id', id).order('created_at', { ascending: false }),
   ])
 
   if (projectRes.error) throw projectRes.error
   if (goalsRes.error) throw goalsRes.error
   if (logsRes.error) throw logsRes.error
+  if (itemsRes.error) throw itemsRes.error
 
   return {
     project: projectRes.data as Project,
     goals: (goalsRes.data ?? []) as RecurringGoal[],
     logs: (logsRes.data ?? []) as ProgressLog[],
+    items: (itemsRes.data ?? []) as ProjectItem[],
   }
 }
 
@@ -110,6 +124,13 @@ export async function addLog(projectId: string, logType: LogType, content: strin
   if (error) throw error
   await supabase.from('projects').update({ updated_at: new Date().toISOString() }).eq('id', projectId)
   return data as ProgressLog
+}
+
+// 작업물 완료 처리/되돌리기. 목표 ±1은 DB 함수가 같이 처리한다. (supabase/06_project_items.sql)
+export async function setItemPublished(id: string, published: boolean): Promise<ProjectItem> {
+  const { data, error } = await supabase.rpc('set_item_published', { item_id: id, published })
+  if (error) throw error
+  return data as ProjectItem
 }
 
 export async function deleteLog(id: string): Promise<void> {
