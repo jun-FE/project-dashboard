@@ -72,6 +72,19 @@ export default function ProjectDetail() {
     }
   }
 
+  async function toggleHidden() {
+    if (!detail) return
+    const prev = detail.project
+    patch((d) => ({ ...d, project: { ...d.project, hidden: !prev.hidden } }))
+    try {
+      const project = await updateProject(prev.id, { hidden: !prev.hidden })
+      patch((d) => ({ ...d, project }))
+    } catch (e) {
+      patch((d) => ({ ...d, project: prev }))
+      alert(`저장하지 못했어요: ${(e as Error).message}`)
+    }
+  }
+
   function changeProgress(value: number) {
     if (!detail) return
     const projectId = detail.project.id
@@ -177,6 +190,9 @@ export default function ProjectDetail() {
                     </option>
                   ))}
                 </select>
+                {detail.project.hidden && (
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-500">숨김</span>
+                )}
                 {detail.project.category && (
                   <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${categoryClass(detail.project.category)}`}>
                     {detail.project.category}
@@ -184,7 +200,12 @@ export default function ProjectDetail() {
                 )}
               </div>
               {detail.project.description && <p className="mt-2 text-slate-600">{detail.project.description}</p>}
-              <p className="mt-1 text-xs text-slate-400">{relativeTime(detail.project.updated_at)} 업데이트</p>
+              <p className="mt-1 text-xs text-slate-400">
+                {relativeTime(detail.project.updated_at)} 업데이트 ·{' '}
+                <button onClick={toggleHidden} className="underline-offset-2 hover:text-slate-600 hover:underline">
+                  {detail.project.hidden ? '대시보드에 다시 보이기' : '대시보드에서 숨기기'}
+                </button>
+              </p>
             </div>
 
             {/* 작업물 (쿠팡 리뷰 등) — 있는 프로젝트만 */}

@@ -13,6 +13,7 @@ export interface Project {
   progress: number
   // 프로젝트별 자유 데이터. 구조가 정해져 있지 않아 unknown 으로 받고 렌더링 시 분기.
   custom_fields: Record<string, unknown>
+  hidden: boolean // 대시보드 메인에서 숨김 (상세 페이지는 그대로)
   created_at: string
   updated_at: string
 }

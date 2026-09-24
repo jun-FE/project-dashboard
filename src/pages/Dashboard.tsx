@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchDashboardData, type DashboardData } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import SummaryBar from '../components/SummaryBar'
@@ -64,6 +65,20 @@ export default function Dashboard() {
                   />
                 ))}
               </div>
+            )}
+
+            {data.hiddenProjects.length > 0 && (
+              <p className="mt-8 text-xs text-slate-400">
+                숨긴 프로젝트:{' '}
+                {data.hiddenProjects.map((p, i) => (
+                  <span key={p.id}>
+                    {i > 0 && ' · '}
+                    <Link to={`/project/${p.id}`} className="underline-offset-2 hover:text-slate-600 hover:underline">
+                      {p.name}
+                    </Link>
+                  </span>
+                ))}
+              </p>
             )}
           </>
         )}

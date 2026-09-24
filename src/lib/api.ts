@@ -2,7 +2,8 @@ import { supabase } from './supabase'
 import type { Project, RecurringGoal, ProgressLog, ProjectStatus, LogType, ProjectItem } from '../types'
 
 export interface DashboardData {
-  projects: Project[]
+  projects: Project[] // 숨기지 않은 프로젝트만
+  hiddenProjects: Pick<Project, 'id' | 'name'>[]
   // 프로젝트 id → 정기 목표 목록
   goalsByProject: Record<string, RecurringGoal[]>
   // 프로젝트 id → 오늘 작성된 로그 (최신순)
@@ -39,8 +40,12 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   if (logsRes.error) throw logsRes.error
   if (itemsRes.error) throw itemsRes.error
 
-  const projects = (projectsRes.data ?? []) as Project[]
-  const goals = (goalsRes.data ?? []) as RecurringGoal[]
+  const allProjects = (projectsRes.data ?? []) as Project[]
+  const projects = allProjects.filter((p) => !p.hidden)
+  const hiddenProjects = allProjects.filter((p) => p.hidden).map(({ id, name }) => ({ id, name }))
+  // 숨긴 프로젝트의 목표는 요약(이번 주 달성률)에서 뺀다
+  const visibleIds = new Set(projects.map((p) => p.id))
+  const goals = ((goalsRes.data ?? []) as RecurringGoal[]).filter((g) => visibleIds.has(g.project_id))
   const todayLogs = (logsRes.data ?? []) as ProgressLog[]
 
   const goalsByProject: Record<string, RecurringGoal[]> = {}
@@ -59,7 +64,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     if (i.stage === 'queued' || i.stage === 'drafted') c[i.stage]++
   }
 
-  return { projects, goalsByProject, todayLogsByProject, pendingItemsByProject }
+  return { projects, hiddenProjects, goalsByProject, todayLogsByProject, pendingItemsByProject }
 }
 
 export interface ProjectDetail {
@@ -97,10 +102,10 @@ export async function fetchProjectDetail(id: string): Promise<ProjectDetail> {
 
 // ---- 화면에서 수정 (RLS 로 로그인한 본인만 가능) ----
 
-// status/progress 등 공통 컬럼 수정. updated_at 은 DB 트리거가 갱신한다.
+// status/progress/hidden 등 공통 컬럼 수정. updated_at 은 DB 트리거가 갱신한다.
 export async function updateProject(
   id: string,
-  patch: Partial<Pick<Project, 'status' | 'progress'>>,
+  patch: Partial<Pick<Project, 'status' | 'progress' | 'hidden'>>,
 ): Promise<Project> {
   const { data, error } = await supabase.from('projects').update(patch).eq('id', id).select().single()
   if (error) throw error
