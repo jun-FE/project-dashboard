@@ -151,7 +151,7 @@ export default function ProjectDetail() {
     }
   }
 
-  // 작업물로 굴러가는 프로젝트(쿠팡)는 목록이 곧 기록이라 프로젝트 정보·진행 로그 대신 업로드 목록을 보여준다
+  // 작업물로 굴러가는 프로젝트(쿠팡)는 목록이 곧 기록이라 진행률·프로젝트 정보·진행 로그 대신 업로드 목록을 보여준다
   const itemBased = !!detail && detail.items.length > 0
   const published = detail?.items.filter((i) => i.stage === 'published') ?? []
 
@@ -219,23 +219,25 @@ export default function ProjectDetail() {
               </Section>
             )}
 
-            {/* 진행률 */}
-            <Section title="진행률">
-              <div className="mb-2 flex justify-between text-sm text-slate-500">
-                <span>전체 진행률 {progressDraft !== null && <span className="text-xs text-slate-400">· 저장 중…</span>}</span>
-                <span className="tabular-nums">{progress}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={progress}
-                onChange={(e) => changeProgress(Number(e.target.value))}
-                aria-label="전체 진행률"
-                className="w-full accent-slate-800"
-              />
-            </Section>
+            {/* 진행률 — 작업물 프로젝트는 목록·목표로 충분해서 뺀다 */}
+            {!itemBased && (
+              <Section title="진행률">
+                <div className="mb-2 flex justify-between text-sm text-slate-500">
+                  <span>전체 진행률 {progressDraft !== null && <span className="text-xs text-slate-400">· 저장 중…</span>}</span>
+                  <span className="tabular-nums">{progress}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={progress}
+                  onChange={(e) => changeProgress(Number(e.target.value))}
+                  aria-label="전체 진행률"
+                  className="w-full accent-slate-800"
+                />
+              </Section>
+            )}
 
             {/* 정기 목표 추적 */}
             <Section title="정기 목표">

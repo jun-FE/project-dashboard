@@ -82,6 +82,53 @@ function ItemCard({ item, onPublish }: { item: ProjectItem; onPublish: (item: Pr
   )
 }
 
+// 업로드한 항목 한 줄. 누르면 한줄평·본문을 펼쳐 본다.
+function PublishedRow({ item, onPublish }: { item: ProjectItem; onPublish: (item: ProjectItem, published: boolean) => void }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <li className="py-1">
+      <div className="group flex items-baseline gap-3">
+        <button
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-baseline gap-2 py-1.5 text-left"
+        >
+          <span className="shrink-0 text-xs text-slate-400">{open ? '▾' : '▸'}</span>
+          <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{item.title}</span>
+          <span className="shrink-0 text-xs tabular-nums text-slate-400">
+            {item.published_at ? dateTime(item.published_at) : ''}
+          </span>
+        </button>
+        <button
+          onClick={() => {
+            if (confirm(`"${item.title}" 업로드 기록을 취소할까요?\n이번 주기에 올린 것이면 목표도 1 줄어요.`)) onPublish(item, false)
+          }}
+          className="shrink-0 text-xs text-slate-300 transition hover:text-rose-600 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        >
+          취소
+        </button>
+      </div>
+
+      {open && (
+        <div className="mb-3 ml-5 mt-1 space-y-2">
+          {item.meta.comment && <p className="text-sm text-slate-500">💬 {item.meta.comment}</p>}
+          {item.body ? (
+            <>
+              <p className="whitespace-pre-wrap break-words rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                {item.body}
+              </p>
+              <CopyButton text={item.body} />
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">저장된 본문이 없어요.</p>
+          )}
+        </div>
+      )}
+    </li>
+  )
+}
+
 // 업로드한 항목 목록 (최근 올린 순). 실수로 올렸어요를 눌렀으면 여기서 취소한다.
 export function PublishedList({
   items,
@@ -96,20 +143,7 @@ export function PublishedList({
   return (
     <ul className="divide-y divide-slate-100">
       {sorted.map((item) => (
-        <li key={item.id} className="group flex items-baseline gap-3 py-2.5">
-          <span className="min-w-0 flex-1 truncate text-sm text-slate-800">{item.title}</span>
-          <span className="shrink-0 text-xs tabular-nums text-slate-400">
-            {item.published_at ? dateTime(item.published_at) : ''}
-          </span>
-          <button
-            onClick={() => {
-              if (confirm(`"${item.title}" 업로드 기록을 취소할까요?\n이번 주기에 올린 것이면 목표도 1 줄어요.`)) onPublish(item, false)
-            }}
-            className="shrink-0 text-xs text-slate-300 transition hover:text-rose-600 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100"
-          >
-            취소
-          </button>
-        </li>
+        <PublishedRow key={item.id} item={item} onPublish={onPublish} />
       ))}
     </ul>
   )
