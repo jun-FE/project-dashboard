@@ -34,3 +34,28 @@ export interface ProgressLog {
   log_type: LogType
   content: string
 }
+
+// 메모봇(텔레그램)이 쌓는 메모. 테이블 정의는 ~/latte-factory/memo-bot/supabase/
+export type MemoKind = 'note' | 'todo' | 'event' | 'question' | 'link'
+export type TodoStatus = 'open' | 'done' | 'archived'
+
+export interface MemoAttachment {
+  type: string
+  path: string | null
+}
+
+export interface Memo {
+  id: string
+  content: string
+  link_title: string | null
+  attachments: MemoAttachment[]
+  created_at: string
+  category: string | null
+  tags: string[]
+  kind: MemoKind | null
+  todo_status: TodoStatus | null
+  due_at: string | null
+  calendar_event_id: string | null
+  ai_note: string | null
+  processed_at: string | null
+}

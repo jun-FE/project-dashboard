@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchDashboardData, type DashboardData } from '../lib/api'
 import SummaryBar from '../components/SummaryBar'
 import ProjectCard from '../components/ProjectCard'
@@ -18,9 +19,17 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <h1 className="text-xl font-semibold">프로젝트 관리 대시보드</h1>
-          <p className="text-sm text-slate-500">개인 사업 프로젝트 진행상황 한눈에 보기</p>
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-5">
+          <div>
+            <h1 className="text-xl font-semibold">프로젝트 관리 대시보드</h1>
+            <p className="text-sm text-slate-500">개인 사업 프로젝트 진행상황 한눈에 보기</p>
+          </div>
+          <Link
+            to="/memos"
+            className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+          >
+            📝 메모
+          </Link>
         </div>
       </header>
 
