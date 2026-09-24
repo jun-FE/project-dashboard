@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메모봇 개인정보처리방침</title>
+<style>
+  :root { --bg:#fbfaf7; --fg:#1f1f1c; --muted:#6b6a64; --line:#e4e1d8; --accent:#2f6f5e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161614; --fg:#ecebe6; --muted:#a3a19a; --line:#2e2d29; --accent:#7cc2ad; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.7 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+  main { max-width:640px; margin:0 auto; padding:48px 16px 64px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:18px; margin:32px 0 8px; }
+  p.date { color:var(--muted); margin:0 0 24px; }
+  ul { padding-left:20px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>개인정보처리방침</h1>
+  <p class="date">시행일: 2026년 9월 25일</p>
+
+  <p>메모봇은 운영자 한 사람이 자기 메모와 일정을 관리하려고 쓰는 개인용 도구입니다. 운영자 외의 사용자를 받지 않습니다.</p>
+
+  <h2>1. 다루는 정보</h2>
+  <ul>
+    <li>운영자가 텔레그램 봇에 보낸 메모, 사진, 파일</li>
+    <li>운영자의 구글 캘린더 일정 (제목, 시간, 장소, 설명)</li>
+  </ul>
+
+  <h2>2. 쓰는 목적</h2>
+  <ul>
+    <li>메모 저장, 검색, 분류</li>
+    <li>메모에서 나온 일정을 운영자의 구글 캘린더에 등록하고 옮기기</li>
+    <li>일정과 할 일을 시작 전에 텔레그램으로 알리기</li>
+  </ul>
+
+  <h2>3. 구글 사용자 데이터</h2>
+  <p>메모봇은 구글 캘린더 권한(<code>calendar.events</code>)으로 운영자 본인의 기본 캘린더 일정을 읽고, 메모에서 나온 일정을 만들거나 옮깁니다. 구글 데이터는 위 목적에만 쓰고, 판매하거나 광고에 쓰거나 제3자에게 넘기지 않습니다. 메모봇의 구글 API 데이터 사용은 <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API 서비스 사용자 데이터 정책</a>(제한적 사용 요건 포함)을 따릅니다.</p>
+
+  <h2>4. 보관 위치</h2>
+  <ul>
+    <li>메모: 운영자의 Supabase 데이터베이스 (운영자만 접근)</li>
+    <li>첨부 파일과 구글 인증 토큰: 운영자의 개인 컴퓨터</li>
+    <li>캘린더 일정: 운영자의 구글 캘린더 (메모봇은 알림에 필요한 만큼만 읽고 따로 쌓아두지 않습니다)</li>
+  </ul>
+
+  <h2>5. 삭제</h2>
+  <p>운영자는 언제든 메모를 지울 수 있고, <a href="https://myaccount.google.com/permissions">구글 계정 권한 페이지</a>에서 메모봇의 캘린더 접근을 끊을 수 있습니다.</p>
+
+  <h2>6. 문의</h2>
+  <p>craftttime@gmail.com</p>
+
+  <p><a href="/memobot.html">← 메모봇</a></p>
+</main>
+</body>
+</html>
