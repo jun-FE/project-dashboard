@@ -12,7 +12,7 @@ const TODO_TAB = '할 일'
 const ALL_TAB = '전체'
 
 function matches(m: Memo, q: string): boolean {
-  const hay = [m.content, m.link_title, m.ai_note, m.category, ...m.tags].join(' ').toLowerCase()
+  const hay = [m.content, m.link_title, m.link_summary, m.ai_note, m.category, ...m.tags].join(' ').toLowerCase()
   return q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w))
 }
 
@@ -89,7 +89,7 @@ function MemoBoard() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="검색 (본문, 링크 제목, 태그)"
+            placeholder="검색 (본문, 링크 제목·요약, 태그)"
             className="mt-5 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-slate-400"
           />
           {shown.length === 0 ? (

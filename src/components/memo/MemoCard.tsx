@@ -26,6 +26,7 @@ function Linkified({ text }: { text: string }) {
 
 export default function MemoCard({ memo }: { memo: Memo }) {
   const [noteOpen, setNoteOpen] = useState(false)
+  const [summaryOpen, setSummaryOpen] = useState(false)
   const firstUrl = memo.content.match(URL_RE)?.[0]
   const body = memo.content.replace(URL_RE, '').trim()
   const photos = memo.attachments.filter((a) => a.type === 'photo').length
@@ -59,6 +60,17 @@ export default function MemoCard({ memo }: { memo: Memo }) {
         <p className="mt-2 whitespace-pre-wrap break-words text-sm text-slate-700">
           <Linkified text={memo.content} />
         </p>
+      )}
+
+      {memo.link_summary && (
+        <div className="mt-3 rounded-lg border border-slate-100 px-3 py-2 text-sm text-slate-600">
+          <p className={`whitespace-pre-wrap break-words ${summaryOpen ? '' : 'line-clamp-3'}`}>📄 {memo.link_summary}</p>
+          {memo.link_summary.length > 100 && (
+            <button onClick={() => setSummaryOpen(!summaryOpen)} className="mt-1 text-xs text-slate-400 hover:text-slate-600">
+              {summaryOpen ? '접기' : '요약 더 보기'}
+            </button>
+          )}
+        </div>
       )}
 
       {(photos > 0 || files > 0) && (

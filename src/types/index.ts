@@ -48,6 +48,8 @@ export interface Memo {
   id: string
   content: string
   link_title: string | null
+  // 링크 요약 (레시피는 재료·순서). '' = 요약할 정보가 없었음
+  link_summary: string | null
   attachments: MemoAttachment[]
   created_at: string
   category: string | null

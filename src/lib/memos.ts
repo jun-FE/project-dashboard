@@ -6,7 +6,7 @@ export async function fetchMemos(): Promise<Memo[]> {
   const { data, error } = await supabase
     .from('memos')
     .select(
-      'id,content,link_title,attachments,created_at,category,tags,kind,todo_status,due_at,calendar_event_id,ai_note,processed_at',
+      'id,content,link_title,link_summary,attachments,created_at,category,tags,kind,todo_status,due_at,calendar_event_id,ai_note,processed_at',
     )
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
