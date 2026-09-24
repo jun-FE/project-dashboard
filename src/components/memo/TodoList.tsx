@@ -7,7 +7,7 @@ interface Props {
   onToggle: (memo: Memo) => void
 }
 
-function Row({ memo, onToggle }: { memo: Memo; onToggle: () => void }) {
+export function TodoRow({ memo, onToggle }: { memo: Memo; onToggle: () => void }) {
   const done = memo.todo_status === 'done'
   const text = memo.content.replace(/https?:\/\/\S+/g, '').trim() || memo.link_title || '(내용 없음)'
   return (
@@ -39,14 +39,14 @@ export default function TodoList({ todos, onToggle }: Props) {
       {open.length === 0 ? (
         <p className="px-3 py-6 text-center text-sm text-slate-400">남은 할 일이 없어요.</p>
       ) : (
-        open.map((t) => <Row key={t.id} memo={t} onToggle={() => onToggle(t)} />)
+        open.map((t) => <TodoRow key={t.id} memo={t} onToggle={() => onToggle(t)} />)
       )}
       {done.length > 0 && (
         <div className="mt-1 border-t border-slate-100 pt-1">
           <button onClick={() => setShowDone(!showDone)} className="px-3 py-2 text-xs text-slate-400 hover:text-slate-600">
             {showDone ? '▾' : '▸'} 완료한 일 {done.length}개
           </button>
-          {showDone && done.map((t) => <Row key={t.id} memo={t} onToggle={() => onToggle(t)} />)}
+          {showDone && done.map((t) => <TodoRow key={t.id} memo={t} onToggle={() => onToggle(t)} />)}
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../lib/supabase'
 
-// 메모는 개인 정보라 로그인한 본인만 본다. 계정은 Supabase 대시보드에서 하나만 만들고 회원가입은 막아둔다.
+// 대시보드·메모 모두 개인 정보라 로그인한 본인만 본다. 계정은 Supabase 대시보드에서 하나만 만들고 회원가입은 막아둔다.
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,7 +20,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={submit} className="mx-auto mt-12 max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="text-base font-semibold">로그인</h2>
-      <p className="mt-1 text-sm text-slate-500">메모는 로그인한 본인만 볼 수 있어요.</p>
+      <p className="mt-1 text-sm text-slate-500">로그인한 본인만 볼 수 있어요.</p>
       <label className="mt-5 block text-sm text-slate-600">
         이메일
         <input

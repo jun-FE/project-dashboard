@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { fetchDashboardData, type DashboardData } from '../lib/api'
+import { supabase } from '../lib/supabase'
 import SummaryBar from '../components/SummaryBar'
 import ProjectCard from '../components/ProjectCard'
+import MemoSummary from '../components/memo/MemoSummary'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -21,19 +22,21 @@ export default function Dashboard() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-5">
           <div>
-            <h1 className="text-xl font-semibold">프로젝트 관리 대시보드</h1>
-            <p className="text-sm text-slate-500">개인 사업 프로젝트 진행상황 한눈에 보기</p>
+            <h1 className="text-xl font-semibold">대시보드</h1>
+            <p className="text-sm text-slate-500">프로젝트 진행상황과 할 일·메모 한눈에 보기</p>
           </div>
-          <Link
-            to="/memos"
-            className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-          >
-            📝 메모
-          </Link>
+          <button onClick={() => supabase.auth.signOut()} className="shrink-0 text-sm text-slate-400 hover:text-slate-700">
+            로그아웃
+          </button>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
+        {/* 메모는 프로젝트 데이터와 따로 불러와서, 한쪽이 실패해도 다른 쪽은 보이게 한다 */}
+        <section className="mb-8">
+          <MemoSummary />
+        </section>
+
         {loading && <p className="text-slate-400">불러오는 중…</p>}
 
         {error && (

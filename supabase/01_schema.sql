@@ -75,7 +75,7 @@ create trigger projects_set_updated_at
   for each row execute function public.set_updated_at();
 
 -- ------------------------------------------------------------
--- RLS : v1은 개인용/인증 없음 → anon 키로 전체 접근 허용.
+-- RLS : v1은 개인용/인증 없음 → anon 키로 전체 접근 허용. (03_owner_only.sql 이 대체함)
 --       (Phase 5에서 인증 도입 시 정책을 좁힌다.)
 -- ------------------------------------------------------------
 alter table public.projects        enable row level security;

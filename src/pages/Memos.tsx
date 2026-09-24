@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Memo } from '../types'
-import { supabase } from '../lib/supabase'
-import { useSession } from '../lib/auth'
 import { fetchMemos, setTodoStatus } from '../lib/memos'
-import LoginForm from '../components/memo/LoginForm'
 import MemoCard from '../components/memo/MemoCard'
 import TodoList from '../components/memo/TodoList'
 
@@ -108,8 +105,6 @@ function MemoBoard() {
 }
 
 export default function Memos() {
-  const session = useSession()
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b border-slate-200 bg-white">
@@ -121,18 +116,11 @@ export default function Memos() {
             <h1 className="text-xl font-semibold">메모</h1>
             <p className="text-sm text-slate-500">텔레그램 메모봇에 쌓인 메모</p>
           </div>
-          {session && (
-            <button onClick={() => supabase.auth.signOut()} className="text-sm text-slate-400 hover:text-slate-700">
-              로그아웃
-            </button>
-          )}
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
-        {session === undefined && <p className="text-slate-400">확인 중…</p>}
-        {session === null && <LoginForm />}
-        {session && <MemoBoard />}
+        <MemoBoard />
       </main>
     </div>
   )
