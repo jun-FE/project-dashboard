@@ -8,7 +8,7 @@ export interface DashboardData {
   goalsByProject: Record<string, RecurringGoal[]>
   // 프로젝트 id → 오늘 작성된 로그 (최신순)
   todayLogsByProject: Record<string, ProgressLog[]>
-  // 프로젝트 id → 아직 완료 안 된 작업물 수
+  // 작업물이 있는 프로젝트 id → 아직 완료 안 된 작업물 수 (작업물이 없는 프로젝트는 키가 없다)
   pendingItemsByProject: Record<string, { queued: number; drafted: number }>
 }
 
@@ -32,7 +32,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       .select('*')
       .gte('log_date', todayStart)
       .order('log_date', { ascending: false }),
-    supabase.from('project_items').select('project_id,stage').neq('stage', 'published'),
+    supabase.from('project_items').select('project_id,stage'),
   ])
 
   if (projectsRes.error) throw projectsRes.error

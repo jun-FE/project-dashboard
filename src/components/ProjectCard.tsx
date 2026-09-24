@@ -8,6 +8,7 @@ interface Props {
   project: Project
   goals: RecurringGoal[]
   todayLogs: ProgressLog[]
+  // 작업물이 있는 프로젝트만 넘어온다
   pendingItems?: { queued: number; drafted: number }
 }
 
@@ -41,19 +42,21 @@ export default function ProjectCard({ project, goals, todayLogs, pendingItems }:
         <p className="mt-2 line-clamp-1 text-sm text-slate-500">{project.description}</p>
       )}
 
-      {/* 진행률 */}
-      <div className="mt-4">
-        <div className="mb-1 flex justify-between text-xs text-slate-500">
-          <span>진행률</span>
-          <span className="tabular-nums">{project.progress}%</span>
+      {/* 진행률 — 작업물 프로젝트(쿠팡)는 목록·목표로 보므로 뺀다 */}
+      {!pendingItems && (
+        <div className="mt-4">
+          <div className="mb-1 flex justify-between text-xs text-slate-500">
+            <span>진행률</span>
+            <span className="tabular-nums">{project.progress}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-slate-800 transition-all"
+              style={{ width: `${project.progress}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full rounded-full bg-slate-800 transition-all"
-            style={{ width: `${project.progress}%` }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* 정기 목표 */}
       {goals.length > 0 && (
