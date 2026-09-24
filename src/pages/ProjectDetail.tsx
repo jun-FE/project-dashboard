@@ -17,7 +17,7 @@ import CustomFields from '../components/CustomFields'
 import GoalTracker from '../components/GoalTracker'
 import LogTimeline from '../components/LogTimeline'
 import LogForm from '../components/LogForm'
-import ItemBoard from '../components/ItemBoard'
+import ItemBoard, { PublishedList } from '../components/ItemBoard'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -151,6 +151,10 @@ export default function ProjectDetail() {
     }
   }
 
+  // 작업물로 굴러가는 프로젝트(쿠팡)는 목록이 곧 기록이라 프로젝트 정보·진행 로그 대신 업로드 목록을 보여준다
+  const itemBased = !!detail && detail.items.length > 0
+  const published = detail?.items.filter((i) => i.stage === 'published') ?? []
+
   const progress = progressDraft ?? detail?.project.progress ?? 0
 
   return (
@@ -209,9 +213,9 @@ export default function ProjectDetail() {
             </div>
 
             {/* 작업물 (쿠팡 리뷰 등) — 있는 프로젝트만 */}
-            {detail.items.length > 0 && (
+            {itemBased && (
               <Section title="작업물">
-                <ItemBoard items={detail.items} onPublish={publishItem} />
+                <ItemBoard items={detail.items.filter((i) => i.stage !== 'published')} onPublish={publishItem} />
               </Section>
             )}
 
@@ -238,16 +242,24 @@ export default function ProjectDetail() {
               <GoalTracker goals={detail.goals} onBump={changeGoal} />
             </Section>
 
-            {/* 프로젝트별 자유 영역 */}
-            <Section title="프로젝트 정보">
-              <CustomFields fields={detail.project.custom_fields} />
-            </Section>
+            {itemBased ? (
+              <Section title={`업로드 완료 ${published.length}`}>
+                <PublishedList items={published} onPublish={publishItem} />
+              </Section>
+            ) : (
+              <>
+                {/* 프로젝트별 자유 영역 */}
+                <Section title="프로젝트 정보">
+                  <CustomFields fields={detail.project.custom_fields} />
+                </Section>
 
-            {/* 진행 로그 타임라인 */}
-            <Section title="진행 로그">
-              <LogForm onAdd={createLog} />
-              <LogTimeline logs={detail.logs} onDelete={removeLog} />
-            </Section>
+                {/* 진행 로그 타임라인 */}
+                <Section title="진행 로그">
+                  <LogForm onAdd={createLog} />
+                  <LogTimeline logs={detail.logs} onDelete={removeLog} />
+                </Section>
+              </>
+            )}
           </div>
         )}
       </main>
