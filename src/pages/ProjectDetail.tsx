@@ -18,6 +18,7 @@ import GoalTracker from '../components/GoalTracker'
 import LogTimeline from '../components/LogTimeline'
 import LogForm from '../components/LogForm'
 import ItemBoard, { PublishedList } from '../components/ItemBoard'
+import RocketGrowth from '../components/rocketgrowth/RocketGrowth'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -153,6 +154,19 @@ export default function ProjectDetail() {
 
   // 작업물로 굴러가는 프로젝트(쿠팡)는 목록이 곧 기록이라 진행률·프로젝트 정보·진행 로그 대신 업로드 목록을 보여준다
   const itemBased = !!detail && detail.items.length > 0
+  // 맞춤 화면이 있는 프로젝트 (custom_fields.module). 진행률은 그 화면이 직접 계산한다.
+  const module = detail?.project.custom_fields?.module
+  const rocketGrowth = module === 'rocketgrowth'
+
+  async function syncProgress(value: number) {
+    if (!detail) return
+    try {
+      const project = await updateProject(detail.project.id, { progress: value })
+      patch((d) => ({ ...d, project }))
+    } catch (e) {
+      alert(`진행률을 저장하지 못했어요: ${(e as Error).message}`)
+    }
+  }
   const published = detail?.items.filter((i) => i.stage === 'published') ?? []
 
   const progress = progressDraft ?? detail?.project.progress ?? 0
@@ -219,8 +233,11 @@ export default function ProjectDetail() {
               </Section>
             )}
 
-            {/* 진행률 — 작업물 프로젝트는 목록·목표로 충분해서 뺀다 */}
-            {!itemBased && (
+            {/* 쿠팡 로켓그로스: 준비 체크리스트·마진 계산·상품 후보 탭 */}
+            {rocketGrowth && <RocketGrowth onProgress={syncProgress} />}
+
+            {/* 진행률 — 작업물 프로젝트는 목록·목표로 충분해서 빼고, 로켓그로스는 체크리스트가 대신한다 */}
+            {!itemBased && !rocketGrowth && (
               <Section title="진행률">
                 <div className="mb-2 flex justify-between text-sm text-slate-500">
                   <span>전체 진행률 {progressDraft !== null && <span className="text-xs text-slate-400">· 저장 중…</span>}</span>
@@ -250,10 +267,12 @@ export default function ProjectDetail() {
               </Section>
             ) : (
               <>
-                {/* 프로젝트별 자유 영역 */}
-                <Section title="프로젝트 정보">
-                  <CustomFields fields={detail.project.custom_fields} />
-                </Section>
+                {/* 프로젝트별 자유 영역 (맞춤 화면이 있는 프로젝트는 뺀다) */}
+                {!module && (
+                  <Section title="프로젝트 정보">
+                    <CustomFields fields={detail.project.custom_fields} />
+                  </Section>
+                )}
 
                 {/* 진행 로그 타임라인 */}
                 <Section title="진행 로그">
