@@ -14,8 +14,9 @@ import {
   setTodoDone,
   type Friend,
   type FriendsData,
+  type Visit,
 } from '../lib/friends'
-import { AddPlaceForm, AddTodoForm, Panel, PlaceItems, TodoItems } from '../components/friends/Lists'
+import { AddPlaceForm, AddTodoForm, Panel, PlaceItems, TodoItems, VisitHistory } from '../components/friends/Lists'
 
 const ALL = 'all'
 
@@ -169,7 +170,9 @@ export default function Friends() {
   const friend = data.friends.find((f) => f.id === selected)
   const inScope = <T extends { friend_id: string }>(xs: T[]) => (friend ? xs.filter((x) => x.friend_id === friend.id) : xs)
   const todos = inScope(data.todos).sort(openFirst((t) => t.done))
-  const places = inScope(data.places).sort(openFirst((p) => p.visited))
+  const places = inScope(data.places)
+  const toVisit = places.filter((p) => !p.visited).sort(openFirst(() => false))
+  const visited = places.filter((p) => p.visited)
   const openTodos = (id?: string) => data.todos.filter((t) => !t.done && (!id || t.friend_id === id)).length
   const tag = friend ? undefined : (x: { friend_id?: string }) => nameOf.get(x.friend_id ?? '')
 
@@ -185,6 +188,16 @@ export default function Friends() {
     }
   }
   const d = data
+  const setVisit = (p: { id: string }, v: Visit | null) =>
+    optimistic(
+      {
+        ...d,
+        places: d.places.map((x) =>
+          x.id === p.id ? { ...x, visited: !!v, visited_on: v?.on ?? null, review: v?.review.trim() || null, visited_at: v ? new Date().toISOString() : null } : x,
+        ),
+      },
+      () => setPlaceVisited(p.id, v),
+    )
 
   return (
     <Shell>
@@ -270,16 +283,12 @@ export default function Friends() {
               )}
             </Panel>
 
-            <Panel title={friend ? `같이 갈 맛집 · ${friend.name}` : '같이 갈 맛집 전체'} sub={`안 가본 곳 ${places.filter((p) => !p.visited).length}곳`}>
+            <Panel title={friend ? `가볼 맛집 · ${friend.name}` : '가볼 맛집 전체'} sub={`${toVisit.length}곳`}>
               <PlaceItems
-                places={places}
+                places={toVisit}
                 viewer={{ is: 'me', friendName: friend?.name ?? '친구' }}
                 tag={tag}
-                onToggle={(p) =>
-                  optimistic({ ...d, places: d.places.map((x) => (x.id === p.id ? { ...x, visited: !p.visited } : x)) }, () =>
-                    setPlaceVisited(p.id, !p.visited),
-                  )
-                }
+                onVisit={(p, v) => setVisit(p, v)}
                 onDelete={(p) => optimistic({ ...d, places: d.places.filter((x) => x.id !== p.id) }, () => deletePlace(p.id))}
               />
               {friend && (
@@ -289,6 +298,12 @@ export default function Friends() {
                 }} />
               )}
             </Panel>
+
+            <div className="md:col-span-2">
+              <Panel title={friend ? `같이 다녀온 곳 · ${friend.name}` : '같이 다녀온 곳 전체'} sub={`${visited.length}곳`}>
+                <VisitHistory places={visited} tag={tag} onUndo={(p) => setVisit(p, null)} />
+              </Panel>
+            </div>
           </div>
         )}
       </div>

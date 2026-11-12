@@ -7,8 +7,9 @@ import {
   friendSetTodo,
   friendView,
   type FriendView,
+  type Visit,
 } from '../lib/friends'
-import { AddPlaceForm, AddTodoForm, Panel, PlaceItems, TodoItems } from '../components/friends/Lists'
+import { AddPlaceForm, AddTodoForm, Panel, PlaceItems, TodoItems, VisitHistory } from '../components/friends/Lists'
 
 // 친구가 링크(/f/<slug>)로 들어오는 페이지. 로그인 없이 비밀번호로만 열리고, 그 친구 것만 보인다.
 // 비밀번호는 이 기기에만 기억한다 (브라우저 저장소, 막혀 있으면 매번 입력).
@@ -85,7 +86,13 @@ export default function FriendShare({ slug }: { slug: string }) {
     await load(pw!)
   }
   const sortTodos = [...v.todos].sort((a, b) => Number(a.done) - Number(b.done) || a.created_at.localeCompare(b.created_at))
-  const sortPlaces = [...v.places].sort((a, b) => Number(a.visited) - Number(b.visited) || a.created_at.localeCompare(b.created_at))
+  const toVisit = v.places.filter((p) => !p.visited).sort((a, b) => a.created_at.localeCompare(b.created_at))
+  const visited = v.places.filter((p) => p.visited)
+  const setVisit = (p: FriendView['places'][number], visit: Visit | null) =>
+    act(
+      { ...v, places: v.places.map((x) => (x.id === p.id ? { ...x, visited: !!visit, visited_on: visit?.on ?? null, review: visit?.review.trim() || null } : x)) },
+      () => friendSetPlace(slug, pw, p.id, visit),
+    )
 
   return (
     <Page title={`${v.name}, 같이 할 것들`}>
@@ -102,17 +109,12 @@ export default function FriendShare({ slug }: { slug: string }) {
           />
           <AddTodoForm onAdd={async (title) => { await friendAddTodo(slug, pw, title); await load(pw) }} />
         </Panel>
-        <Panel title="같이 갈 맛집" sub={`안 가본 곳 ${v.places.filter((p) => !p.visited).length}곳`}>
-          <PlaceItems
-            places={sortPlaces}
-            viewer={viewer}
-            onToggle={(p) =>
-              act({ ...v, places: v.places.map((x) => (x.id === p.id ? { ...x, visited: !p.visited } : x)) }, () =>
-                friendSetPlace(slug, pw, p.id, !p.visited),
-              )
-            }
-          />
+        <Panel title="가볼 맛집" sub={`${toVisit.length}곳`}>
+          <PlaceItems places={toVisit} viewer={viewer} onVisit={(p, visit) => setVisit(p, visit)} />
           <AddPlaceForm onAdd={async (input) => { await friendAddPlace(slug, pw, input); await load(pw) }} />
+        </Panel>
+        <Panel title="같이 다녀온 곳" sub={`${visited.length}곳`}>
+          <VisitHistory places={visited} onUndo={(p) => setVisit(p, null)} />
         </Panel>
         <button
           onClick={() => {

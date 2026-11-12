@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { safeLink, type FriendPlace, type FriendTodo, type PlaceInput } from '../../lib/friends'
+import { safeLink, todayKst, type FriendPlace, type FriendTodo, type PlaceInput, type Visit } from '../../lib/friends'
 
 // 친구 화면에는 friend_id 가 없다
 type Todo = Omit<FriendTodo, 'friend_id'> & { friend_id?: string }
@@ -74,53 +74,138 @@ export function TodoItems({
   )
 }
 
+function PlaceName({ p }: { p: Place }) {
+  const link = safeLink(p.link)
+  return link ? (
+    <a href={link} target="_blank" rel="noopener noreferrer" className="font-medium text-slate-900 underline-offset-2 hover:underline">
+      {p.name} ↗
+    </a>
+  ) : (
+    <span className="font-medium text-slate-900">{p.name}</span>
+  )
+}
+
+function Tag({ text }: { text?: string }) {
+  return text ? <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">{text}</span> : null
+}
+
+// "다녀왔어요"를 누르면 날짜(기본 오늘)와 한줄 후기를 적고 기록으로 넘긴다
+function VisitForm({ onSave, onCancel }: { onSave: (v: Visit) => Promise<void>; onCancel: () => void }) {
+  const [on, setOn] = useState(todayKst())
+  const [review, setReview] = useState('')
+  const [busy, setBusy] = useState(false)
+  return (
+    <form
+      className="mt-2 flex flex-wrap gap-2"
+      onSubmit={async (e) => {
+        e.preventDefault()
+        setBusy(true)
+        await onSave({ on, review })
+        setBusy(false)
+      }}
+    >
+      <input type="date" value={on} max={todayKst()} onChange={(e) => setOn(e.target.value)} aria-label="다녀온 날" className={`${inputCls} w-36`} />
+      <input autoFocus value={review} onChange={(e) => setReview(e.target.value)} maxLength={300} placeholder="한줄 후기 (선택)" className={`${inputCls} flex-1`} />
+      <button disabled={busy || !on} className={buttonCls}>
+        기록
+      </button>
+      <button type="button" onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-700">
+        취소
+      </button>
+    </form>
+  )
+}
+
 export function PlaceItems({
   places,
   viewer,
   tag,
-  onToggle,
+  onVisit,
   onDelete,
 }: {
-  places: Place[]
+  places: Place[] // 아직 안 가본 곳
   viewer: Viewer
   tag?: (p: Place) => string | undefined
-  onToggle: (p: Place) => void
+  onVisit: (p: Place, v: Visit) => Promise<void>
   onDelete?: (p: Place) => void
 }) {
-  if (places.length === 0) return <p className="px-1 py-3 text-sm text-slate-400">등록한 맛집이 없어요.</p>
+  const [openId, setOpenId] = useState<string | null>(null)
+  if (places.length === 0) return <p className="px-1 py-3 text-sm text-slate-400">가볼 곳이 없어요. 아래에서 추가해 보세요.</p>
   return (
     <ul className="divide-y divide-slate-100">
       {places.map((p) => {
-        const link = safeLink(p.link)
         const addedBy = whoLabel(p.created_by, viewer)
         return (
-          <li key={p.id} className="flex items-start gap-3 px-1 py-2.5">
-            <button
-              onClick={() => onToggle(p)}
-              className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-xs font-medium transition ${
-                p.visited ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {p.visited ? '다녀옴' : '가보기'}
-            </button>
-            <span className="min-w-0 flex-1 text-sm">
-              {tag?.(p) && <span className="mr-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">{tag(p)}</span>}
-              {link ? (
-                <a href={link} target="_blank" rel="noopener noreferrer" className={`font-medium underline-offset-2 hover:underline ${p.visited ? 'text-slate-400' : 'text-slate-900'}`}>
-                  {p.name} ↗
-                </a>
-              ) : (
-                <span className={`font-medium ${p.visited ? 'text-slate-400' : 'text-slate-900'}`}>{p.name}</span>
+          <li key={p.id} className="px-1 py-2.5">
+            <div className="flex items-start gap-3">
+              <span className="min-w-0 flex-1 text-sm">
+                <Tag text={tag?.(p)} />
+                <PlaceName p={p} />
+                {p.area && <span className="ml-1.5 text-xs text-slate-500">{p.area}</span>}
+                {addedBy && <span className="ml-1.5 text-xs text-slate-400">{addedBy} 추가</span>}
+                {p.memo && <span className="mt-0.5 block text-xs text-slate-500">{p.memo}</span>}
+              </span>
+              {openId !== p.id && (
+                <button
+                  onClick={() => setOpenId(p.id)}
+                  className="shrink-0 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:border-slate-400"
+                >
+                  ✓ 다녀왔어요
+                </button>
               )}
-              {p.area && <span className="ml-1.5 text-xs text-slate-500">{p.area}</span>}
-              {addedBy && <span className="ml-1.5 text-xs text-slate-400">{addedBy} 추가</span>}
-              {p.memo && <span className="mt-0.5 block text-xs text-slate-500">{p.memo}</span>}
-            </span>
-            {onDelete && <DeleteButton onDelete={() => onDelete(p)} />}
+              {onDelete && <DeleteButton onDelete={() => onDelete(p)} />}
+            </div>
+            {openId === p.id && (
+              <VisitForm
+                onCancel={() => setOpenId(null)}
+                onSave={async (v) => {
+                  await onVisit(p, v)
+                  setOpenId(null)
+                }}
+              />
+            )}
           </li>
         )
       })}
     </ul>
+  )
+}
+
+const dateLabel = (d: string | null) => {
+  if (!d) return '날짜 없음'
+  const [y, m, day] = d.split('-').map(Number)
+  return `${y === Number(todayKst().slice(0, 4)) ? '' : `${y}년 `}${m}월 ${day}일`
+}
+
+// 다녀온 곳 히스토리: 최근 다녀온 순
+export function VisitHistory({
+  places,
+  tag,
+  onUndo,
+}: {
+  places: Place[] // 다녀온 곳
+  tag?: (p: Place) => string | undefined
+  onUndo: (p: Place) => void
+}) {
+  if (places.length === 0) return <p className="px-1 py-3 text-sm text-slate-400">아직 같이 다녀온 곳이 없어요. 가볼 곳에서 "다녀왔어요"를 누르면 여기 쌓여요.</p>
+  const rows = [...places].sort((a, b) => (b.visited_on ?? '').localeCompare(a.visited_on ?? '') || (b.visited_at ?? '').localeCompare(a.visited_at ?? ''))
+  return (
+    <ol className="divide-y divide-slate-100">
+      {rows.map((p) => (
+        <li key={p.id} className="group flex items-start gap-3 px-1 py-2.5 text-sm">
+          <span className="w-20 shrink-0 pt-px text-xs tabular-nums text-slate-500">{dateLabel(p.visited_on)}</span>
+          <span className="min-w-0 flex-1">
+            <Tag text={tag?.(p)} />
+            <PlaceName p={p} />
+            {p.area && <span className="ml-1.5 text-xs text-slate-500">{p.area}</span>}
+            {p.review && <span className="mt-0.5 block text-slate-600">“{p.review}”</span>}
+          </span>
+          <button onClick={() => onUndo(p)} className="shrink-0 text-xs text-slate-300 hover:text-slate-600">
+            기록 취소
+          </button>
+        </li>
+      ))}
+    </ol>
   )
 }
 

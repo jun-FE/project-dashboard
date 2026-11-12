@@ -32,6 +32,8 @@ export interface FriendPlace {
   memo: string | null
   visited: boolean
   visited_at: string | null
+  visited_on: string | null // 다녀온 날 (YYYY-MM-DD)
+  review: string | null // 한줄 후기
   created_by: Who
   created_at: string
 }
@@ -112,10 +114,24 @@ export async function addPlace(friendId: string, p: PlaceInput): Promise<FriendP
   return data as FriendPlace
 }
 
-export async function setPlaceVisited(id: string, visited: boolean): Promise<void> {
+export interface Visit {
+  on: string // YYYY-MM-DD
+  review: string
+}
+
+// 오늘 날짜 (한국 시간)
+export const todayKst = () => new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
+
+// visit 이 null 이면 다녀옴 취소
+export async function setPlaceVisited(id: string, visit: Visit | null): Promise<void> {
   const { error } = await supabase
     .from('friend_places')
-    .update({ visited, visited_at: visited ? new Date().toISOString() : null })
+    .update({
+      visited: !!visit,
+      visited_at: visit ? new Date().toISOString() : null,
+      visited_on: visit?.on ?? null,
+      review: visit?.review.trim() || null,
+    })
     .eq('id', id)
   if (error) throw error
 }
@@ -160,8 +176,15 @@ export const friendSetTodo = (slug: string, pw: string, id: string, done: boolea
 export const friendAddTodo = (slug: string, pw: string, title: string) =>
   friendCall('friend_add_todo', { p_slug: slug, p_password: pw, p_title: title })
 
-export const friendSetPlace = (slug: string, pw: string, id: string, visited: boolean) =>
-  friendCall('friend_set_place', { p_slug: slug, p_password: pw, p_place_id: id, p_visited: visited })
+export const friendSetPlace = (slug: string, pw: string, id: string, visit: Visit | null) =>
+  friendCall('friend_set_place', {
+    p_slug: slug,
+    p_password: pw,
+    p_place_id: id,
+    p_visited: !!visit,
+    p_visited_on: visit?.on ?? null,
+    p_review: visit?.review ?? null,
+  })
 
 export const friendAddPlace = (slug: string, pw: string, p: PlaceInput) =>
   friendCall('friend_add_place', {
