@@ -174,6 +174,7 @@ export default function Friends() {
   const toVisit = places.filter((p) => !p.visited).sort(openFirst(() => false))
   const visited = places.filter((p) => p.visited)
   const openTodos = (id?: string) => data.todos.filter((t) => !t.done && (!id || t.friend_id === id)).length
+  const toVisitCount = (id?: string) => data.places.filter((p) => !p.visited && (!id || p.friend_id === id)).length
   const tag = friend ? undefined : (x: { friend_id?: string }) => nameOf.get(x.friend_id ?? '')
 
   // 화면부터 바꾸고, 저장에 실패하면 되돌린다
@@ -202,7 +203,7 @@ export default function Friends() {
   return (
     <Shell>
       <div className="flex flex-wrap gap-2">
-        {[{ id: ALL, name: '전체', n: openTodos() }, ...d.friends.map((f) => ({ id: f.id, name: f.name, n: openTodos(f.id) }))].map((c) => (
+        {[{ id: ALL, name: '전체' }, ...d.friends.map((f) => ({ id: f.id, name: f.name }))].map((c) => (
           <button
             key={c.id}
             onClick={() => select(c.id)}
@@ -210,7 +211,10 @@ export default function Friends() {
               selected === c.id || (c.id === ALL && !friend) ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300'
             }`}
           >
-            {c.name} <span className="tabular-nums opacity-60">{c.n}</span>
+            {c.name}{' '}
+            <span className="text-xs tabular-nums opacity-60">
+              할 일 {openTodos(c.id === ALL ? undefined : c.id)} · 맛집 {toVisitCount(c.id === ALL ? undefined : c.id)}
+            </span>
           </button>
         ))}
         <button onClick={() => setAdding((a) => !a)} className="rounded-full px-3 py-1.5 text-sm text-slate-500 ring-1 ring-dashed ring-slate-300 hover:text-slate-800">
