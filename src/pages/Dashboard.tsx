@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import SummaryBar from '../components/SummaryBar'
 import ProjectCard from '../components/ProjectCard'
 import MemoSummary from '../components/memo/MemoSummary'
+import FriendSummary from '../components/friends/FriendSummary'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -36,6 +37,10 @@ export default function Dashboard() {
         {/* 메모는 프로젝트 데이터와 따로 불러와서, 한쪽이 실패해도 다른 쪽은 보이게 한다 */}
         <section className="mb-8">
           <MemoSummary />
+        </section>
+
+        <section className="mb-8">
+          <FriendSummary />
         </section>
 
         {loading && <p className="text-slate-400">불러오는 중…</p>}
