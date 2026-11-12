@@ -91,7 +91,7 @@ export default function MarginTab({ initial, onSave }: Props) {
           일반과세자 (부가세를 대략 빼서 계산)
         </label>
         <p className="text-xs leading-relaxed text-slate-400">
-          수수료·입출고비·보관비 기본값은 예시예요. 로켓그로스 요율표(체크리스트 7번)를 보고 실제 값으로 바꿔 주세요.
+          수수료·입출고비·보관비 기본값은 예시예요. 로켓그로스 요율표(체크리스트 10번)를 보고 실제 값으로 바꿔 주세요.
         </p>
       </div>
 

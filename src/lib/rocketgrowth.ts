@@ -7,6 +7,7 @@ export interface ChecklistStep {
   step_order: number
   title: string
   detail: string | null
+  phase: string | null // 지금 · 샘플 단계 / 판매 결정 시 · 대량주문 전 / 입고 전 (11_rg_checklist_phases.sql)
   done: boolean
   done_at: string | null
 }
@@ -44,7 +45,7 @@ export interface Candidate {
 }
 
 // 수수료·물류비는 카테고리·크기마다 다르고 자주 바뀐다. 아래는 화면을 채우기 위한 예시값이라
-// 체크리스트 7번(요율표 확인) 때 실제 값으로 바꿔 쓴다.
+// 체크리스트 10번(요율표 확인) 때 실제 값으로 바꿔 쓴다.
 export const DEFAULT_INPUTS: MarginInputs = {
   salePrice: 19900,
   cost: 6000,
