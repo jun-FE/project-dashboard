@@ -24,7 +24,21 @@ function Linkified({ text }: { text: string }) {
   )
 }
 
-export default function MemoCard({ memo }: { memo: Memo }) {
+// 한 번 누르면 "정말 지우기"로 바뀌고, 한 번 더 눌러야 지운다
+function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  const [armed, setArmed] = useState(false)
+  return armed ? (
+    <button onClick={onDelete} onBlur={() => setArmed(false)} autoFocus className="ml-auto text-xs font-medium text-rose-600">
+      정말 지우기
+    </button>
+  ) : (
+    <button onClick={() => setArmed(true)} className="ml-auto text-xs text-slate-300 hover:text-rose-600">
+      지우기
+    </button>
+  )
+}
+
+export default function MemoCard({ memo, onDelete }: { memo: Memo; onDelete?: (m: Memo) => void }) {
   const [noteOpen, setNoteOpen] = useState(false)
   const [summaryOpen, setSummaryOpen] = useState(false)
   const firstUrl = memo.content.match(URL_RE)?.[0]
@@ -42,6 +56,7 @@ export default function MemoCard({ memo }: { memo: Memo }) {
         ) : (
           <span className="rounded bg-amber-50 px-1.5 py-0.5 font-medium text-amber-700">정리 전</span>
         )}
+        {onDelete && <DeleteButton onDelete={() => onDelete(memo)} />}
       </div>
 
       {memo.link_title && firstUrl && (

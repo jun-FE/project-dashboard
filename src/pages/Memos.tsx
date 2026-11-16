@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Memo } from '../types'
-import { fetchMemos, setTodoStatus } from '../lib/memos'
+import { fetchMemos, setMemoDeleted, setTodoStatus } from '../lib/memos'
 import MemoCard from '../components/memo/MemoCard'
 import TodoList from '../components/memo/TodoList'
 
@@ -13,11 +13,14 @@ function matches(m: Memo, q: string): boolean {
   return q.toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w))
 }
 
+const sortByDate = (ms: Memo[]) => [...ms].sort((a, b) => b.created_at.localeCompare(a.created_at))
+
 function MemoBoard() {
   const [memos, setMemos] = useState<Memo[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState(ALL_TAB)
   const [query, setQuery] = useState('')
+  const [undo, setUndo] = useState<Memo | null>(null) // 방금 지운 메모 (되돌리기용)
 
   useEffect(() => {
     fetchMemos()
@@ -58,6 +61,29 @@ function MemoBoard() {
     }
   }
 
+  // 지우면 화면에서 바로 빼고, 아래 띠에서 되돌릴 수 있게 한다
+  async function remove(memo: Memo) {
+    setMemos((ms) => ms!.filter((m) => m.id !== memo.id))
+    setUndo(memo)
+    try {
+      await setMemoDeleted(memo.id, true)
+    } catch (e) {
+      setMemos((ms) => sortByDate([...ms!, memo]))
+      setUndo(null)
+      alert(`지우지 못했어요: ${(e as Error).message}`)
+    }
+  }
+
+  async function restore(memo: Memo) {
+    setUndo(null)
+    try {
+      await setMemoDeleted(memo.id, false)
+      setMemos((ms) => sortByDate([...ms!, memo]))
+    } catch (e) {
+      alert(`되돌리지 못했어요: ${(e as Error).message}`)
+    }
+  }
+
   const tabs: [string, number][] = [[TODO_TAB, openCount], [ALL_TAB, memos.length], ...categories]
 
   return (
@@ -94,11 +120,25 @@ function MemoBoard() {
           ) : (
             <div className="mt-5 gap-4 md:columns-2">
               {shown.map((m) => (
-                <MemoCard key={m.id} memo={m} />
+                <MemoCard key={m.id} memo={m} onDelete={remove} />
               ))}
             </div>
           )}
         </>
+      )}
+
+      {undo && (
+        <div className="fixed inset-x-0 bottom-4 z-10 flex justify-center px-4">
+          <div className="flex max-w-md items-center gap-3 rounded-lg bg-slate-900 px-4 py-2.5 text-sm text-white shadow-lg">
+            <span className="min-w-0 truncate">지웠어요: {undo.link_title || undo.content || '(내용 없음)'}</span>
+            <button onClick={() => restore(undo)} className="shrink-0 font-medium text-sky-300 hover:text-sky-200">
+              되돌리기
+            </button>
+            <button onClick={() => setUndo(null)} aria-label="닫기" className="shrink-0 text-slate-400 hover:text-white">
+              ✕
+            </button>
+          </div>
+        </div>
       )}
     </>
   )

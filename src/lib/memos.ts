@@ -64,7 +64,16 @@ export async function setTodoStatus(id: string, status: TodoStatus): Promise<voi
   if (error) throw error
 }
 
-const WEEKDAY = '일월화수목금토'
+// 지우기는 deleted_at 만 채운다 (봇 검색·정리·브리핑 모두 deleted_at 있는 메모를 건너뛴다). 되돌리기 가능.
+export async function setMemoDeleted(id: string, deleted: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('memos')
+    .update({ deleted_at: deleted ? new Date().toISOString() : null })
+    .eq('id', id)
+  if (error) throw error
+}
+
+const WEEKDAY ='일월화수목금토'
 
 // "9/26(토) 15:00", 날짜만 정한 할 일(자정)은 시각 생략
 export function dueText(iso: string): string {
