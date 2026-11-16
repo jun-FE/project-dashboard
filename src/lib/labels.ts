@@ -6,6 +6,7 @@ export const CATEGORY_STYLE: Record<string, string> = {
   리서치: 'bg-amber-50 text-amber-700',
   콘텐츠: 'bg-emerald-50 text-emerald-700',
   커머스: 'bg-sky-50 text-sky-700',
+  게임: 'bg-fuchsia-50 text-fuchsia-700',
 }
 
 export function categoryClass(category: string | null): string {

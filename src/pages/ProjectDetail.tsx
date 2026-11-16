@@ -19,6 +19,7 @@ import LogTimeline from '../components/LogTimeline'
 import LogForm from '../components/LogForm'
 import ItemBoard, { PublishedList } from '../components/ItemBoard'
 import RocketGrowth from '../components/rocketgrowth/RocketGrowth'
+import LaunchChecklist from '../components/launch/LaunchChecklist'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -157,6 +158,7 @@ export default function ProjectDetail() {
   // 맞춤 화면이 있는 프로젝트 (custom_fields.module). 진행률은 그 화면이 직접 계산한다.
   const module = detail?.project.custom_fields?.module
   const rocketGrowth = module === 'rocketgrowth'
+  const launch = module === 'launch'
 
   async function syncProgress(value: number) {
     if (!detail) return
@@ -236,8 +238,17 @@ export default function ProjectDetail() {
             {/* 쿠팡 로켓그로스: 준비 체크리스트·마진 계산·상품 후보 탭 */}
             {rocketGrowth && <RocketGrowth onProgress={syncProgress} />}
 
+            {/* 출시 체크리스트 (DigDown 등): 진행도·나/Claude 몫·섹션별 체크 */}
+            {launch && (
+              <LaunchChecklist
+                projectId={detail.project.id}
+                note={typeof detail.project.custom_fields?.note === 'string' ? detail.project.custom_fields.note : undefined}
+                onProgress={syncProgress}
+              />
+            )}
+
             {/* 진행률 — 작업물 프로젝트는 목록·목표로 충분해서 빼고, 로켓그로스는 체크리스트가 대신한다 */}
-            {!itemBased && !rocketGrowth && (
+            {!itemBased && !rocketGrowth && !launch && (
               <Section title="진행률">
                 <div className="mb-2 flex justify-between text-sm text-slate-500">
                   <span>전체 진행률 {progressDraft !== null && <span className="text-xs text-slate-400">· 저장 중…</span>}</span>
