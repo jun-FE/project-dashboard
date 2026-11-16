@@ -6,6 +6,7 @@ import SummaryBar from '../components/SummaryBar'
 import ProjectCard from '../components/ProjectCard'
 import MemoSummary from '../components/memo/MemoSummary'
 import FriendSummary from '../components/friends/FriendSummary'
+import GamePromptSummary from '../components/GamePromptSummary'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -41,6 +42,10 @@ export default function Dashboard() {
 
         <section className="mb-8">
           <FriendSummary />
+        </section>
+
+        <section className="mb-8">
+          <GamePromptSummary />
         </section>
 
         {loading && <p className="text-slate-400">불러오는 중…</p>}

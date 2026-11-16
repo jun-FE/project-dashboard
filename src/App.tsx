@@ -6,6 +6,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import Memos from './pages/Memos'
 import Friends from './pages/Friends'
 import FriendShare from './pages/FriendShare'
+import GamePrompts from './pages/GamePrompts'
 
 function App() {
   // 사이트 전체가 로그인 뒤에 있다. 데이터도 RLS 로 본인만 읽을 수 있다. (supabase/03_owner_only.sql)
@@ -29,6 +30,7 @@ function App() {
       <Route path="/project/:id" element={<ProjectDetail />} />
       <Route path="/memos" element={<Memos />} />
       <Route path="/friends" element={<Friends />} />
+      <Route path="/game-prompts" element={<GamePrompts />} />
     </Routes>
   )
 }
