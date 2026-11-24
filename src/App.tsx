@@ -7,14 +7,19 @@ import Memos from './pages/Memos'
 import Friends from './pages/Friends'
 import FriendShare from './pages/FriendShare'
 import GamePrompts from './pages/GamePrompts'
+import Trips from './pages/Trips'
+import TripOwner from './pages/TripOwner'
+import TripShare from './pages/TripShare'
 
 function App() {
   // 사이트 전체가 로그인 뒤에 있다. 데이터도 RLS 로 본인만 읽을 수 있다. (supabase/03_owner_only.sql)
   // 예외: 친구 공유 페이지(/f/:slug)는 로그인 없이 비밀번호로 열린다. (supabase/09_friends.sql 의 friend_* 함수)
   const session = useSession()
   const friendPage = useMatch('/f/:slug')
+  const tripPage = useMatch('/t/:slug') // 여행 초대 페이지도 로그인 없이 초대 코드로 (supabase/14_trips.sql)
 
   if (friendPage) return <FriendShare slug={friendPage.params.slug ?? ""} />
+  if (tripPage) return <TripShare slug={tripPage.params.slug ?? ''} />
 
   if (!session) {
     return (
@@ -31,6 +36,8 @@ function App() {
       <Route path="/memos" element={<Memos />} />
       <Route path="/friends" element={<Friends />} />
       <Route path="/game-prompts" element={<GamePrompts />} />
+      <Route path="/trips" element={<Trips />} />
+      <Route path="/trips/:slug" element={<TripOwner />} />
     </Routes>
   )
 }

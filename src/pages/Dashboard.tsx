@@ -7,6 +7,7 @@ import ProjectCard from '../components/ProjectCard'
 import MemoSummary from '../components/memo/MemoSummary'
 import FriendSummary from '../components/friends/FriendSummary'
 import GamePromptSummary from '../components/GamePromptSummary'
+import TripSummary from '../components/trips/TripSummary'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -42,6 +43,10 @@ export default function Dashboard() {
 
         <section className="mb-8">
           <FriendSummary />
+        </section>
+
+        <section className="mb-8">
+          <TripSummary />
         </section>
 
         <section className="mb-8">
