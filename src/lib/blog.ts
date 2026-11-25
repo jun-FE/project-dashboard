@@ -19,6 +19,12 @@ export interface BlogStatus {
   published: { total: number; by_lang: Record<string, number> }
   published_7d: number
   last_published: string | null
+  search?: {
+    has_data?: boolean
+    error?: string
+    weeks?: { date: string; clicks: number; impressions: number; pageviews: number }[]
+    totals?: { clicks: number; impressions: number; pageviews: number }
+  }
   recent: BlogPost[]
   drafts: BlogPost[]
 }

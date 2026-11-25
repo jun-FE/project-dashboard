@@ -79,6 +79,8 @@ export default function BlogPanel() {
         <p className="mt-3 px-1 text-[11px] text-slate-300">봇이 1시간마다 갱신 · 마지막 {relativeTime(row.updated_at)}</p>
       </div>
 
+      <SearchCard s={d.search} />
+
       {d.recent.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <h3 className="mb-2 text-sm font-semibold text-slate-700">최근 발행</h3>
@@ -96,6 +98,47 @@ export default function BlogPanel() {
         </div>
       )}
     </section>
+  )
+}
+
+function SearchCard({ s }: { s: BlogStatus['search'] }) {
+  if (!s) return null
+  const weeks = s.weeks ?? []
+  const max = Math.max(1, ...weeks.map((w) => w.impressions))
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold text-slate-700">🔎 구글 검색·방문 (최근 {weeks.length || 4}주)</h3>
+        <span className="text-xs text-slate-400">Rank Math Analytics</span>
+      </div>
+      {!s.has_data ? (
+        <p className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+          {s.error ? `불러오지 못했어요: ${s.error}` : '아직 데이터가 0이에요. Rank Math가 서치 콘솔 데이터를 못 가져오고 있고, 방문자(GA4)는 연결돼 있지 않아요.'}
+        </p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {(
+              [
+                ['검색 노출', s.totals?.impressions],
+                ['검색 클릭', s.totals?.clicks],
+                ['방문(페이지뷰)', s.totals?.pageviews],
+              ] as const
+            ).map(([label, v]) => (
+              <div key={label}>
+                <p className="text-xs text-slate-500">{label}</p>
+                <p className="text-lg font-semibold tabular-nums">{(v ?? 0).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 flex h-16 items-end gap-1">
+            {weeks.map((w) => (
+              <div key={w.date} className="flex-1 rounded-t bg-sky-200" style={{ height: `${Math.max(4, (w.impressions / max) * 100)}%` }} title={`${w.date} 노출 ${w.impressions} · 클릭 ${w.clicks}`} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   )
 }
 
