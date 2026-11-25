@@ -8,6 +8,7 @@ import MemoSummary from '../components/memo/MemoSummary'
 import FriendSummary from '../components/friends/FriendSummary'
 import GamePromptSummary from '../components/GamePromptSummary'
 import TripSummary from '../components/trips/TripSummary'
+import BlogSummary from '../components/blog/BlogSummary'
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
@@ -39,6 +40,10 @@ export default function Dashboard() {
         {/* 메모는 프로젝트 데이터와 따로 불러와서, 한쪽이 실패해도 다른 쪽은 보이게 한다 */}
         <section className="mb-8">
           <MemoSummary />
+        </section>
+
+        <section className="mb-8 empty:hidden">
+          <BlogSummary />
         </section>
 
         <section className="mb-8">

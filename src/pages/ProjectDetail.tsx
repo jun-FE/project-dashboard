@@ -20,6 +20,7 @@ import LogForm from '../components/LogForm'
 import ItemBoard, { PublishedList } from '../components/ItemBoard'
 import RocketGrowth from '../components/rocketgrowth/RocketGrowth'
 import LaunchChecklist from '../components/launch/LaunchChecklist'
+import BlogPanel from '../components/blog/BlogPanel'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -158,7 +159,8 @@ export default function ProjectDetail() {
   // 맞춤 화면이 있는 프로젝트 (custom_fields.module). 진행률은 그 화면이 직접 계산한다.
   const module = detail?.project.custom_fields?.module
   const rocketGrowth = module === 'rocketgrowth'
-  const launch = module === 'launch'
+  const blog = module === 'blog' // 워드프레스 블로그: 발행 현황 + 체크리스트
+  const launch = module === 'launch' || blog
 
   async function syncProgress(value: number) {
     if (!detail) return
@@ -239,6 +241,8 @@ export default function ProjectDetail() {
             {rocketGrowth && <RocketGrowth onProgress={syncProgress} />}
 
             {/* 출시 체크리스트 (DigDown 등): 진행도·나/Claude 몫·섹션별 체크 */}
+            {blog && <BlogPanel />}
+
             {launch && (
               <LaunchChecklist
                 projectId={detail.project.id}
